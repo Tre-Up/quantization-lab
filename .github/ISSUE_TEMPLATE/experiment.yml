@@ -1,0 +1,45 @@
+name: Experiment
+about: Propose or record a reproducible quantization experiment
+title: "[EXP] "
+labels: []
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Experiments should answer one clear question and preserve enough detail to reproduce the result.
+  - type: input
+    id: question
+    attributes:
+      label: Research question
+      description: What single question is this experiment trying to answer?
+    validations:
+      required: true
+  - type: textarea
+    id: hypothesis
+    attributes:
+      label: Hypothesis
+      description: State the expected result before running the experiment.
+    validations:
+      required: true
+  - type: textarea
+    id: setup
+    attributes:
+      label: Setup
+      description: Model revision, hardware, backend, quantization settings, context/decoding settings.
+    validations:
+      required: true
+  - type: textarea
+    id: metrics
+    attributes:
+      label: Metrics to collect
+      description: Weight size, peak RAM, latency, throughput, quality metrics, etc.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Decision rule
+      description: What result would support or reject the hypothesis?
+    validations:
+      required: true

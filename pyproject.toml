@@ -1,0 +1,37 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "quantization-lab"
+version = "0.0.1"
+description = "Reproducible research tooling for device-aware LLM quantization experiments"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+  { name = "Yiğit Ali Kurt" }
+]
+keywords = ["llm", "quantization", "mlx", "apple-silicon", "machine-learning"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+]
+
+[project.scripts]
+qlab = "quantization_lab.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/quantization_lab"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
