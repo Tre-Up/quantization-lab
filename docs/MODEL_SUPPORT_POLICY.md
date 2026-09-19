@@ -1,50 +1,69 @@
 # Model Support Policy
 
-v0.1 should generalize across model families without pretending every architecture is identical.
+v0.1 should test generalization without pretending every MoE architecture is interchangeable.
 
 ## Support tiers
 
 ### Tier A — validated
-A model family is Tier A only when:
+
+A model family or architecture variant is Tier A only when:
 
 - baseline loads reproducibly;
+- expert structure and router behavior can be identified;
 - quantization path is supported;
-- held-out evaluation completes;
-- runtime metrics are collected;
-- known caveats are documented.
+- routing/runtime instrumentation works;
+- locked held-out evaluation completes;
+- required runtime metrics are collected;
+- caveats are documented.
 
 ### Tier B — experimental
-The model can be quantized/run, but full held-out or runtime validation is incomplete.
+
+The model can be loaded and partially profiled or quantized, but one or more validation requirements are incomplete.
 
 ### Tier C — unsupported
-The architecture contains unsupported layers/behavior or cannot be tested reliably with available hardware/tooling.
 
-## Initial family strategy
+The architecture contains unsupported layers/routing behavior, cannot be instrumented reliably, or cannot be tested with available hardware/tooling.
 
-Choose families that:
+## Initial selection strategy
 
-- have open weights under workable terms;
-- have small variants suitable for local iteration;
-- also have larger variants useful for scale validation;
-- are supported by practical Apple Silicon tooling where possible.
+Prefer open-weight models that:
 
-Candidate families may include Qwen, Llama-family derivatives where licensing permits, Gemma, Mistral, or others selected after compatibility checks.
+- have workable licenses;
+- expose a clear MoE structure;
+- have variants small enough for local iteration or partial profiling;
+- are supported by practical Apple Silicon tooling where possible;
+- differ enough to test whether the policy generalizes.
 
-The final three-family set should be chosen because it tests generalization, not because all three happen to give flattering results.
+The final validation set should be chosen to challenge assumptions, not to maximize flattering results.
 
 ## Exact revision rule
 
-Never write only “Qwen 7B” or “Gemma” in a scientific result. Record the exact repository/model identifier and revision.
+Scientific results must record:
 
-## Architecture assumptions
+- exact model identifier;
+- model revision/commit;
+- tokenizer revision;
+- runtime/backend version.
 
-Every custom method must document assumptions such as:
+“Model X 7B” is not sufficient provenance.
 
-- dense transformer vs MoE;
-- supported linear-layer types;
-- tied embeddings;
+## Required architecture metadata
+
+For MoE models, document where relevant:
+
+- total experts per layer;
+- experts selected per token;
+- shared experts;
+- router type and routing output;
+- expert hidden size / MLP structure;
 - attention variant;
-- quantized vs unquantized output head;
-- backend-specific kernel requirements.
+- tied embeddings;
+- output head behavior;
+- expert weight naming/layout;
+- backend-specific kernel assumptions.
 
-A method that silently skips half a model is not broad model support. It is a magic trick with a stack trace waiting backstage.
+## Unsupported assumptions
+
+A method must fail loudly if it cannot safely interpret the model structure.
+
+Silently skipping experts, layers, or unsupported tensors is not broad support. It is invalid evidence with better typography.
