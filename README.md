@@ -1,63 +1,84 @@
 # quantization-lab
 
-A 13-week open research build focused on one question:
+Research tooling for **device-aware quantization and efficient Mixture-of-Experts (MoE) inference on constrained hardware**.
 
-> **How far can an open-weight language model be compressed for local inference before measurable capability meaningfully degrades?**
+The project investigates a systems question:
 
-The project starts on **2026-09-12** and targets a first serious public release on **2026-12-12**.
+> **Can quantization precision and expert residency be selected jointly from model sensitivity, routing behavior, and device constraints to reduce real inference cost without materially degrading measured capability?**
 
-## Mission
+The primary target device is Apple Silicon with a **16 GB unified-memory budget**. The repository treats storage size, resident/peak memory, latency, throughput, and measured capability as separate quantities. A smaller file is not considered a deployment win if runtime behavior gets worse.
 
-Build a reproducible, device-aware quantization system that reduces the real memory cost of running large language models while preserving as much baseline capability as possible.
+## Research direction
 
-The project is deliberately not defined as “make every model 4-bit.” The long-term system should inspect a model, measure what is sensitive, search for a safe compression plan, validate the result against the original model, and export something people can actually run on constrained local hardware.
+The working hypothesis is that uniform quantization leaves useful structure on the table. In an MoE model, experts differ in at least three ways that may matter for constrained-device inference:
 
-## 13-week target
+- **quantization sensitivity** — how much measured behavior changes when an expert is compressed;
+- **routing frequency** — how often an expert is selected under a defined workload;
+- **residency cost** — how expensive it is to keep or fetch that expert on a target device.
 
-The primary research target for v0.1 is:
+The project will test whether those signals can support a joint policy:
 
-- support **at least 3 open-weight model families**;
-- demonstrate **~4× weight-storage compression** against FP16/BF16 baselines where the architecture permits it;
-- target **≥99% measured quality retention** on a predefined held-out evaluation battery;
-- measure **peak runtime memory**, not just file size;
-- report latency and throughput alongside quality;
-- produce reproducible results on Apple Silicon, with a **MacBook Air M4 / 16 GB unified memory** as the main constrained-device target;
-- make every published result reproducible from scripts and frozen configs.
+```text
+model + device budget
+        ↓
+runtime / routing profile
+        ↓
+expert sensitivity profile
+        ↓
+candidate bit-width + residency policies
+        ↓
+development evaluation
+        ↓
+frozen candidate
+        ↓
+held-out evaluation + runtime validation
+        ↓
+reproducible artifact and report
+```
 
-### Stretch target
+No novelty claim is made by the existence of this pipeline. Novelty, if any, must be established against prior work and supported by experiments.
 
-**≥5× compression with ≥99.9% measured quality retention** on the locked evaluation protocol.
+## v0.1 research targets
 
-That is a research target, not a promised result. If the experiments do not support it, the repository will report the failure rather than manufacture a victory.
+The v0.1 program aims to demonstrate:
 
-## What “quality” means here
+- reproducible baselines for established quantization and MoE inference paths;
+- validation across **at least three open-weight model families or architecture variants**, where technically appropriate;
+- **≥3× expert-weight storage compression** relative to FP16/BF16 baselines for the headline configuration;
+- **≥99% aggregate measured quality retention** on a locked held-out evaluation protocol;
+- lower **peak/resident memory** than a comparable uniform-quantized MoE baseline;
+- real-device measurements on **Apple Silicon / 16 GB unified memory**;
+- an automatic policy that can consider both **precision** and **expert residency** under an explicit device budget;
+- reproducible configs, raw metrics, software versions, hardware metadata, and negative results.
 
-“99.9% quality” does **not** mean the model is 99.9% factually correct or identical on every possible prompt. It means the quantized model retains 99.9% of the original model’s measured score on a frozen, diverse, held-out evaluation protocol.
+### Stretch targets
 
-See [`docs/EVALUATION_STANDARD.md`](docs/EVALUATION_STANDARD.md).
+Stretch outcomes include:
 
-## What counts as compression
+- approximately **4× or better expert-weight compression** while retaining **≥99.9% measured quality** on the locked protocol;
+- measurable energy or sustained-thermal improvement under a fixed workload;
+- useful expert prefetch/cache behavior without unacceptable latency;
+- independent reproduction on another machine.
 
-We report several numbers separately:
+These are research targets, not promised outcomes.
 
-1. **Weight storage**: bytes used by model weights.
-2. **Peak runtime memory**: highest measured memory while running a fixed workload.
-3. **Latency**: time to first token and end-to-end response time.
-4. **Throughput**: generated tokens per second under a fixed setup.
-5. **Measured quality retention**: quantized score relative to the original baseline.
+## Measurement standard
 
-A tiny model file that expands into an unusable runtime is not considered a success.
+Headline results separate:
 
-## Research principles
+1. weight storage;
+2. resident and peak runtime memory;
+3. time to first token;
+4. generation throughput;
+5. expert load / transfer behavior where applicable;
+6. measured quality retention;
+7. uncertainty and per-domain scores.
 
-- Baseline first. No custom method is trusted until existing methods are reproduced.
-- Held-out evaluation. Search/calibration data must not be reused as final evidence.
-- No cherry-picking. Failed experiments stay in the log.
-- No fake precision. Confidence intervals and raw per-domain scores accompany headline numbers.
-- Device reality matters. Disk size alone is not a deployment metric.
-- Reproducibility beats screenshots.
+The final held-out battery is never used to tune bit widths, group sizes, residency decisions, cache rules, or search termination.
 
-## Repository map
+See [Evaluation Standard](docs/EVALUATION_STANDARD.md), [Hardware Standard](docs/HARDWARE_STANDARD.md), and [Experiment Protocol](docs/EXPERIMENT_PROTOCOL.md).
+
+## Repository structure
 
 ```text
 quantization-lab/
@@ -66,54 +87,41 @@ quantization-lab/
 ├── GOALS.md
 ├── ROADMAP.md
 ├── SUCCESS_CRITERIA.md
+├── CHANGELOG.md
 ├── CONTRIBUTING.md
 ├── SECURITY.md
-├── CHANGELOG.md
 ├── pyproject.toml
-├── docs/
-│   ├── ARCHITECTURE.md
-│   ├── BENCHMARK_PLAN.md
-│   ├── EVALUATION_STANDARD.md
-│   ├── EXPERIMENT_PROTOCOL.md
-│   ├── FAILURE_MODES.md
-│   ├── HARDWARE_STANDARD.md
-│   ├── IP_AND_LICENSING.md
-│   ├── LEARNING_PATH.md
-│   ├── OSS_GROWTH.md
-│   ├── READING_LIST.md
-│   └── REPRODUCIBILITY.md
-├── research/
-│   ├── README.md
-│   ├── experiment-template.md
-│   └── week-01.md
-├── benchmarks/
-│   └── README.md
-├── src/quantization_lab/
-│   ├── __init__.py
-│   ├── __main__.py
-│   └── cli.py
-└── tests/
-    └── test_smoke.py
+│
+├── src/quantization_lab/   # implementation
+├── tests/                  # cheap deterministic tests
+├── benchmarks/             # benchmark definitions and adapters
+├── configs/                # frozen experiment / model / device configs
+├── experiments/            # experiment records and reproduction commands
+├── results/                # compact machine-readable result summaries
+├── research/               # hypotheses, experiment index, negative results
+└── docs/                   # architecture, evaluation, runtime and methodology
 ```
+
+Large model weights and bulky benchmark artifacts do not belong in Git. Immutable model revisions, checksums, configs, and artifact references do.
 
 ## Current status
 
-**Week 0 / foundation.** No compression result is claimed yet. The first milestone is to establish a clean baseline and measurement harness on a small open model before attempting any original quantization method.
+**Foundation / instrumentation.**
 
-## Development command
+The repository currently contains the research contract, evaluation standards, experiment protocol, and a minimal `qlab doctor` utility. It does **not** yet claim a new quantization method, a compression result, a memory win, or a quality-retention result.
 
-Once installed in editable mode, the initial utility is:
+The next milestone is a frozen, reproducible baseline on the target device before adaptive MoE policies are attempted.
+
+See [Current Status](docs/CURRENT_STATUS.md) and [Roadmap](ROADMAP.md).
+
+## Development
 
 ```bash
+python -m pip install -e ".[dev]"
 qlab doctor
+pytest
 ```
 
-It reports the local environment and hardware basics. Quantization commands will only be added after their behavior is implemented and tested.
+## Research rule
 
-## Licensing
-
-No final software license has been selected yet. This is intentional while the project evaluates a long-term model that keeps individual/research use broadly accessible while preserving options for commercial licensing and future IP protection. See [`docs/IP_AND_LICENSING.md`](docs/IP_AND_LICENSING.md).
-
----
-
-**Rule for this repository:** results earn claims. Claims do not earn results.
+> **Results earn claims. Claims do not earn results.**
