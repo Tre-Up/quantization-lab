@@ -1,27 +1,43 @@
-# Research Log
+# Research Records
 
-This directory is the chronological lab notebook.
+This directory contains the evidence trail behind technical decisions.
 
-## Rules
+The repository uses **experiment IDs and research questions**, not week-by-week progress diaries.
 
-- Write the hypothesis **before** seeing the result.
-- Preserve failures that change the next decision.
-- Link every important claim to an experiment ID.
-- Separate observation from interpretation.
-- Do not rewrite old weeks to make the story look smarter in hindsight.
+## Experiment record
 
-## Weekly structure
+Every serious experiment should answer one narrow question and preserve enough information to repeat it.
 
-Each week should answer:
+Recommended ID:
 
-1. What did we try to learn?
-2. What did we build?
-3. What experiments ran?
-4. What numbers changed?
-5. What failed?
-6. What did we misunderstand?
-7. What is the next highest-value experiment?
+```text
+YYYYMMDD-model-method-purpose-NNN
+```
 
-Use [`experiment-template.md`](experiment-template.md) for individual experiments.
+Example:
 
-The repository history plus these logs should make the 13-week progression auditable without requiring anyone to trust a retrospective story.
+```text
+20261031-moe-routing-frequency-profile-001
+```
+
+Use [experiment-template.md](experiment-template.md).
+
+## What belongs here
+
+- hypotheses;
+- experiment records;
+- negative results;
+- ablations;
+- architecture-specific observations;
+- unresolved questions that affect interpretation.
+
+Large raw artifacts should live in an appropriate artifact store. Commit immutable references/checksums plus compact machine-readable summaries.
+
+## What does not belong here
+
+- personal learning diaries;
+- application material;
+- motivational logs;
+- retrospective claims not backed by experiments.
+
+The Git history and experiment sequence should make the technical evolution of the project visible without turning the repository into a personal progress journal.
