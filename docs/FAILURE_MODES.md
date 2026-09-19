@@ -1,83 +1,106 @@
 # Failure Modes
 
-This project should try to disprove itself before strangers do it for us.
+The project should try to disprove itself before strangers do it for us.
 
 ## Scientific failure modes
 
 ### Benchmark leakage
-The final evaluation data influences quantization search or hyperparameter choices.
+Final held-out data influences quantization, residency, cache, prefetch, or candidate selection.
 
-**Mitigation:** strict split between calibration/development and held-out final evaluation.
+**Mitigation:** strict separation between profiling/calibration, development evaluation, and locked final evidence.
 
 ### Aggregate-score camouflage
-Strong domains hide a serious collapse in another domain.
+Strong domains hide a serious collapse elsewhere.
 
 **Mitigation:** publish per-domain scores and macro aggregates.
 
 ### Tiny test set
-A headline percentage comes from too few examples to support the precision claimed.
+A precise headline percentage comes from too few examples.
 
-**Mitigation:** report sample size, uncertainty, and expand the held-out set before strong claims.
+**Mitigation:** publish sample counts, uncertainty, and expand evidence before stronger claims.
 
 ### Judge noise
-An LLM-as-judge score changes because the judge is noisy rather than because the quantized model changed.
+A judge-based metric moves because the judge is noisy.
 
-**Mitigation:** deterministic scorers when possible; calibrated repeated judging only when necessary.
+**Mitigation:** deterministic scorers where possible; repeated/calibrated judging only when necessary.
 
 ### Non-equivalent baselines
-Baseline and quantized model use different prompts, context lengths, token limits, runtimes, or templates.
+Baseline and candidate differ in prompts, context, decoding, runtime, or workload.
 
-**Mitigation:** frozen experiment configs.
+**Mitigation:** frozen configs and explicit exceptions.
 
 ## Quantization failure modes
 
 ### Outlier destruction
 A small set of large/important weights or activation channels is damaged by aggressive low-bit representation.
 
-### Layer sensitivity mismatch
-A uniform bit width is safe for most layers but catastrophically bad for a few.
+### Expert sensitivity mismatch
+A bit width that is safe for most experts is catastrophic for a small subset.
 
 ### Below-4-bit collapse
-Average bit-width looks impressive while language quality or difficult tasks degrade sharply.
-
-### Architecture-specific assumptions
-A method works on one transformer family but fails on another, especially MoE or unusual attention/MLP layouts.
+Average bit width looks impressive while difficult tasks degrade sharply.
 
 ### Calibration overfitting
-The quantizer performs well on calibration-like text but generalizes poorly.
+The policy performs well on calibration-like text but generalizes poorly.
+
+### Proxy failure
+Reconstruction error or another sensitivity proxy fails to predict task-level quality.
+
+## MoE / routing failure modes
+
+### Workload-specific routing
+An expert looks cold only because the profiling workload is narrow.
+
+### Router-policy interaction
+Quantization or runtime changes alter routing behavior enough to invalidate the original profile.
+
+### Frequency-only caching
+Frequently routed experts are kept resident while rare but latency-critical experts cause severe stalls.
+
+### Cache thrashing
+The resident set is too small or badly chosen, causing repeated expert loads.
+
+### Prefetch misprediction
+Prefetch increases traffic or memory pressure without reducing latency.
+
+### Expert fragmentation overhead
+Many individually small experts create metadata, allocation, or transfer overhead that erases theoretical savings.
 
 ## Runtime failure modes
 
 ### Small file, large runtime
-The stored weights are compact but the runtime expands/dequantizes them or allocates large temporary buffers.
+Compact weights expand, dequantize, or require large temporary buffers.
 
 ### KV-cache dominance
-Model weights shrink, but long-context inference is still dominated by KV-cache memory.
+Long-context memory remains dominated by KV cache even after expert-weight compression.
 
 ### Kernel mismatch
-Low-bit representation reduces memory but lacks an efficient kernel, causing terrible speed.
+Low-bit representation saves memory but lacks an efficient execution kernel.
+
+### SSD / storage bottleneck
+Offloaded experts fit the memory budget but storage transfer makes interactive inference unusable.
 
 ### Memory pressure / swapping
-A configuration technically loads on a 16 GB machine but becomes unusably slow because the OS is under severe memory pressure.
+A configuration technically loads but becomes unusably slow under pressure.
 
 ### Thermal benchmarking
-A first run looks fast; later runs throttle.
+Early runs look fast while sustained runs throttle.
 
-## Product/research failure modes
+## Research/product failure modes
 
 ### “Works on my Mac” syndrome
-No external reproduction.
+No independent reproduction.
 
 ### Vanity metrics
-Stars rise but nobody successfully quantizes or runs a model.
+Stars increase without successful external use.
 
 ### Premature originality claims
-A technique is presented as novel before a serious prior-art search.
+Existing work is rediscovered and presented as novel.
 
 ### Premature disclosure
-A genuinely novel potentially patentable mechanism is published before IP options are evaluated.
+A genuinely novel patentable mechanism is published before IP options are evaluated.
 
 ### Scope explosion
-The project tries to solve quantization, pruning, distillation, speculative decoding, training, and datacenter scheduling at once.
+The project expands into pruning, distillation, speculative decoding, training, and scheduling before the core hypothesis is tested.
 
-**Mitigation:** v0.1 remains focused on post-training quantization and measured local inference.
+**Mitigation:** v0.1 remains focused on post-training quantization, MoE profiling, expert residency/offload, and measured local inference.
