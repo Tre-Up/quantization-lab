@@ -1,27 +1,27 @@
 # Evaluation Standard
 
-This document defines what “measured quality retention” means in this repository.
+This document defines measured capability retention for baseline-vs-candidate comparisons.
 
 ## Core definition
 
 For each benchmark/domain where higher is better:
 
 ```text
-retention_i = quantized_score_i / baseline_score_i
+retention_i = candidate_score_i / baseline_score_i
 ```
 
-The project reports both:
+Report both:
 
-- **absolute score delta**: `quantized_score - baseline_score`
-- **retention percentage**: `quantized_score / baseline_score × 100`
+- **absolute score delta**: `candidate_score - baseline_score`
+- **retention percentage**: `candidate_score / baseline_score × 100`
 
-For metrics where lower is better, the metric must be transformed or reported separately rather than forced into the same formula.
+Metrics where lower is better must be transformed carefully or reported separately rather than forced into this formula.
 
 ## Aggregate quality
 
-The headline aggregate is a **macro average across domains**, not a raw average across all questions. This prevents a large easy dataset from hiding a collapse in a smaller difficult domain.
+The headline aggregate is a **macro average across domains**, not a raw average across all examples. This prevents a large easy dataset from hiding collapse in a smaller difficult domain.
 
-Example domains:
+Candidate domains may include:
 
 - mathematics;
 - coding;
@@ -31,20 +31,29 @@ Example domains:
 - language modeling/perplexity where appropriate;
 - long-context or retrieval behavior where feasible.
 
-Exact domain composition will be versioned and frozen before final evaluation.
+Exact composition and versions are frozen before final evaluation.
 
-## Held-out rule
+## Data separation
 
-The final evaluation set must not be used to:
+Three roles are distinct:
+
+```text
+profiling / calibration data
+development evaluation
+locked final held-out evaluation
+```
+
+The locked final set must not be used to:
 
 - choose bit widths;
-- tune scales;
-- select layers to protect;
-- choose group size;
+- tune scales or group size;
+- select layers/experts to protect;
+- choose resident/offloaded experts;
+- tune cache or prefetch rules;
 - stop search early;
-- decide which candidate wins.
+- choose the winning candidate.
 
-Calibration/search data and final evidence data are separate.
+Routing profiles used by the optimizer must also be identified explicitly so workload-specific tuning is visible.
 
 ## Determinism
 
@@ -55,40 +64,44 @@ Where possible:
 - fixed tokenizer/model revision;
 - fixed max tokens/context;
 - fixed scorer;
-- fixed seed where stochasticity cannot be removed.
+- fixed seed where stochasticity remains.
 
-If the task is inherently stochastic, repeated runs and variance must be reported.
+If a task/runtime is inherently stochastic, repeated runs and variance must be reported.
 
 ## Statistical reporting
 
-For final headline results, report uncertainty where the metric supports it. Preferred default:
+For final headline results, report uncertainty where supported. Preferred defaults:
 
 - 95% bootstrap confidence interval over evaluation items;
-- paired comparison between baseline and quantized outputs when possible.
+- paired baseline/candidate comparison when possible;
+- sample counts per domain.
 
-A tiny score difference inside measurement noise should not be marketed as a real gain or loss.
+A score difference inside measurement noise is not a meaningful gain or loss merely because the third decimal changed.
 
-## “99.9% measured quality retention”
+## High-retention wording
 
-This phrase is allowed only when:
+“99.9% measured quality retention” is allowed only when:
 
-1. the locked aggregate retention is at least 99.9%;
+1. locked aggregate retention is at least 99.9%;
 2. raw per-domain scores are published;
 3. no core domain shows a material hidden regression;
-4. the protocol and model revisions are reproducible;
-5. the result is explicitly scoped to the evaluation battery rather than all possible prompts.
+4. protocol and model revisions are reproducible;
+5. the result is scoped to the tested evaluation battery.
 
-## Exact-output agreement is a separate metric
+The same rule applies to a measured 100% retention result: it means **no measured score loss on the locked protocol**, not universal equivalence on every possible prompt.
 
-Two models may receive the same task score while producing different text. Therefore the project may also report:
+## Exact-output agreement is separate
+
+Two systems may receive the same task score while producing different text. Diagnostic metrics may include:
 
 - answer exact match;
 - token/output agreement under deterministic decoding;
-- logit or distribution divergence when technically practical;
-- pairwise disagreement rate.
+- logit/distribution divergence when practical;
+- pairwise disagreement rate;
+- router/expert-selection disagreement where relevant.
 
-These are useful diagnostics but do not replace task quality.
+These diagnostics do not replace task-level quality.
 
 ## Core principle
 
-**The original model is the baseline. The quantized model is not asked to become perfect; it is asked to preserve the baseline as faithfully as the measurement can establish.**
+**The baseline defines the behavior being preserved. The candidate is evaluated on what the measurement can establish, not on vague claims about “intelligence.”**

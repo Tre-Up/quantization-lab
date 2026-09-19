@@ -2,86 +2,104 @@
 
 ## Problem
 
-Large open-weight language models are often technically downloadable but practically unusable on consumer hardware because of memory, bandwidth, and runtime constraints. Existing quantization methods reduce storage and memory, but low-bit compression can degrade capability unevenly across models, layers, tasks, and devices.
+Large open-weight language models are increasingly capable, but local inference is constrained by more than model-file size. Real deployments are limited by resident memory, peak memory, memory bandwidth, expert transfers, latency, throughput, energy, and sustained thermal behavior.
+
+Quantization reduces representation cost, while Mixture-of-Experts (MoE) architectures reduce active computation by routing tokens through a subset of experts. These mechanisms solve different parts of the deployment problem and are often configured independently.
 
 ## Research question
 
-**Can a device-aware quantization system automatically find a compression plan that meaningfully lowers real runtime memory while preserving almost all measurable baseline capability?**
+**Can a device-aware system jointly select quantization precision and expert residency from measured sensitivity, routing behavior, and hardware constraints to reduce real MoE inference cost while preserving baseline capability as tightly as possible?**
 
-## First research window
+## Research window
 
-- Start: **2026-09-12**
-- v0.1 target: **2026-12-12**
-- Planned focused effort: roughly **300–350 hours** across 13 weeks
+- Start: **2026-09-20**
+- v0.1 target: **2026-12-19**
+- Focused effort budget: roughly **20–25 hours per week**
+
+Calendar time is not evidence. Milestones close only when the required measurements and artifacts exist.
 
 ## Scope for v0.1
 
 In scope:
 
-- post-training quantization of open-weight language models;
-- Apple Silicon as the primary local target;
-- reproducible quality, memory, latency, and throughput measurements;
-- reproducing established methods before proposing new ones;
-- sensitivity analysis and mixed-precision / mixed-bit experiments;
-- automatic search for a safe compression configuration;
-- support for several transformer model families.
+- post-training quantization of open-weight models;
+- MoE models and expert-level profiling;
+- Apple Silicon as the primary constrained-device target;
+- reproducible quality, memory, latency, throughput, and expert-transfer measurements;
+- established quantization and MoE baselines before custom policy search;
+- expert/tensor sensitivity analysis;
+- routing-frequency measurement;
+- mixed-bit / mixed-precision policies;
+- expert residency, cache, and offload experiments;
+- automatic search under explicit memory and quality constraints;
+- validation across multiple model families or architecture variants where feasible.
 
 Out of scope for v0.1:
 
-- claiming universal guarantees across every model and every prompt;
-- quantizing closed-weight APIs such as hosted proprietary models;
+- claiming that quantization reduces parameter count;
+- converting arbitrary dense models into competitive MoE models as a primary objective;
 - training frontier-scale models from scratch;
-- proving datacenter cost reductions from laptop experiments;
-- claiming that parameter count has been reduced when only representation size changed;
-- pretending disk compression equals runtime-memory compression.
+- claiming universal equivalence across every prompt;
+- proving datacenter economics from laptop experiments;
+- hiding SSD traffic, temporary buffers, KV-cache cost, or dequantization overhead;
+- claiming novelty before a serious prior-art review.
 
 ## North-star outcome
 
 A user should eventually be able to provide:
 
-- an open-weight model,
-- a target device or memory budget,
-- an allowed quality-loss threshold,
+- a supported open-weight MoE model;
+- a target device or memory budget;
+- an allowed measured quality-loss threshold;
 
-and receive a validated quantized model plus a report showing exactly what changed.
+and receive a validated deployment policy describing, where supported:
 
-Conceptually:
-
-```text
-open model
-   ↓
-profile model + device
-   ↓
-search candidate quantization plans
-   ↓
-validate quality and runtime
-   ↓
-select smallest safe candidate
-   ↓
-export + reproducible report
-```
+- expert/tensor bit width;
+- group size or quantization scheme;
+- expert residency / offload policy;
+- cache or prefetch decisions;
+- expected storage and runtime-memory cost;
+- measured quality and runtime evidence.
 
 ## Scientific standard
 
-A result is publishable in this repository only if:
+A publishable headline result must satisfy all of the following:
 
-1. the baseline is frozen before comparison;
-2. calibration/search data is separated from held-out final evaluation;
-3. hardware and software versions are recorded;
-4. raw domain-level scores are preserved;
-5. memory is measured at runtime under a fixed workload;
-6. the experiment can be repeated from committed code/configuration;
-7. negative results are not silently removed.
+1. baseline configuration is frozen before comparison;
+2. calibration/search data is separated from final held-out evaluation;
+3. exact model/tokenizer revisions are recorded;
+4. hardware and software versions are recorded;
+5. raw per-domain scores are preserved;
+6. peak and resident memory are measured under fixed workloads;
+7. transfer/offload behavior is reported when it materially affects the result;
+8. latency and throughput are repeated rather than taken from one favorable run;
+9. experiments are reproducible from committed code/configuration;
+10. negative results are retained when they affect interpretation.
+
+## Working hypothesis
+
+The project will test, rather than assume, that expert-level heterogeneity is useful for deployment. A candidate joint policy may benefit from signals such as:
+
+```text
+expert sensitivity
+× routing frequency
+× storage / transfer cost
+× device memory budget
+```
+
+Examples of possible policy decisions include keeping a frequently used sensitive expert resident at higher precision while storing a rarely used tolerant expert at lower precision and loading it on demand.
+
+This is a hypothesis, not a result.
 
 ## Long-term direction
 
 If v0.1 establishes a credible signal, later work may explore:
 
-- better automatic bit allocation;
-- model-family transfer of sensitivity information;
-- larger-scale server inference;
-- 2–3 bit regimes;
-- enterprise deployment tooling;
-- IP protection for genuinely novel methods before public disclosure.
-
-The 13-week build is a foundation, not a claim that the general quantization problem has been solved.
+- predictive expert prefetch;
+- cross-model transfer of sensitivity or routing priors;
+- KV-cache quantization and context-aware budgeting;
+- lower-bit regimes;
+- custom Metal/CUDA kernels;
+- server-scale inference;
+- hardware-aware learned policies;
+- IP protection for genuinely novel mechanisms before disclosure.

@@ -1,4 +1,4 @@
-# Experiment Template
+# Experiment Record
 
 ## Metadata
 
@@ -6,49 +6,91 @@
 - Date:
 - Commit SHA:
 - Model + exact revision:
+- Tokenizer revision:
+- Architecture / MoE layout:
 - Hardware:
 - Runtime/backend + version:
+- OS:
+- Config path:
 
 ## Question
 
-What single question is this experiment trying to answer?
+What single technical question is this experiment trying to answer?
 
 ## Hypothesis
 
-State the expected outcome **before** running it.
+State the expected outcome **before** running the experiment.
 
 ## Baseline
 
-- Precision:
-- Quantization method: none / reference
+- Precision / quantization method:
+- Residency policy:
 - Context length:
+- Prompt/workload identity:
 - Decoding settings:
-- Weight size:
+- Total weight size:
+- Expert-weight size:
+- Resident memory:
 - Peak runtime memory:
-- Latency:
+- TTFT:
 - Throughput:
 - Quality scores:
 
 ## Candidate
 
-- Method:
-- Bit width / policy:
+- Quantization method:
+- Bit width / mixed-bit policy:
 - Group size:
-- Calibration data:
+- Protected tensors/experts:
+- Residency/offload policy:
+- Cache/prefetch policy:
+- Calibration/profiling data:
+- Development-evaluation split:
 - Search settings:
 - Other changed variables:
 
+## MoE / transfer measurements
+
+Where applicable:
+
+- experts selected per token:
+- routing-frequency summary:
+- expert cache hit rate:
+- bytes transferred:
+- load/fetch stalls:
+- resident expert set:
+
 ## Result
 
-Record raw numbers, not adjectives.
+Record raw numbers and machine-readable artifact paths. Do not substitute adjectives for measurements.
+
+## Comparison
+
+- storage delta:
+- resident-memory delta:
+- peak-memory delta:
+- TTFT delta:
+- throughput delta:
+- quality delta / retention:
+- transfer/offload cost:
 
 ## Interpretation
 
-What does the result suggest?
+What does the result suggest, and what does it **not** establish?
 
 ## Confounders / uncertainty
 
-What could make this conclusion wrong?
+What could make the conclusion wrong?
+
+Examples:
+
+- thermal state;
+- background processes;
+- workload-specific routing;
+- noisy scorer;
+- cache warm-up;
+- backend/kernel differences;
+- insufficient sample count.
 
 ## Decision
 
