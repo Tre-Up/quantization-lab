@@ -50,6 +50,6 @@ Major project decisions are recorded here so later changes have context.
 
 ## 2026-09-19 — D008: Public repository is a research artifact, not a personal learning diary
 
-**Decision:** Public structure uses milestones, experiments, configs, results, and provenance. Personal study plans/exams are not part of the repository's primary surface.
+**Decision:** Public structure uses milestones, experiments, configs, results, and provenance. Personal study plans and assessments are not part of the repository's primary surface.
 
-**Reason:** The repository should be useful and credible to ML systems engineers independently of the author's education or application context.
+**Reason:** The repository should stand on its technical usefulness to external ML systems engineers, researchers, and contributors.
