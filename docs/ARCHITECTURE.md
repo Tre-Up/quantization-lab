@@ -1,124 +1,202 @@
 # Architecture
 
-This file describes the intended architecture. v0.1 may implement only part of it.
+This document describes the intended v0.1 architecture. Individual components may land incrementally.
 
-## Design principle
+## Design principles
 
-Separate **measurement**, **search**, **quantization**, and **export**. A method should not be able to quietly change the benchmark that judges it.
+1. **Measurement is independent from optimization.**
+2. **Final held-out evidence is isolated from search.**
+3. **Precision and residency are explicit policy decisions.**
+4. **Runtime cost includes transfer, cache, KV-cache, and temporary-buffer effects where measurable.**
+5. **Unsupported model structure fails loudly rather than being silently approximated.**
 
 ## Proposed pipeline
 
 ```text
-ModelSpec
-   ↓
+ModelSpec + DeviceSpec
+        ↓
 Model Loader
-   ↓
-Profiler ───────────────→ Baseline Runtime Report
-   ↓
-Calibration / Search Data
-   ↓
-Sensitivity Analyzer
-   ↓
+        ↓
+Runtime Profiler ───────────────→ Baseline Runtime Report
+        ↓
+MoE Routing Profiler
+        ↓
+Calibration / Development Data
+        ↓
+Expert + Tensor Sensitivity Analyzer
+        ↓
+Cost Model
+        ↓
 Candidate Policy Generator
-   ↓
+        ↓
 Quantization Backend(s)
-   ↓
-Candidate Runtime + Development Evaluation
-   ↓
+        ↓
+Residency / Offload Runtime
+        ↓
+Development Evaluation + Runtime Measurement
+        ↓
 Search / Selection
-   ↓
+        ↓
 Frozen Candidate
-   ↓
-Held-out Evaluation
-   ↓
+        ↓
+Locked Held-out Evaluation
+        ↓
 Export + Reproducibility Report
 ```
 
-## Components
+## Core components
 
 ### 1. Model specification
 
 Owns:
-- model identifier;
-- exact revision/hash;
+
+- model identifier and exact revision;
 - architecture family;
 - tokenizer revision;
+- MoE structure and expert naming;
 - trust-remote-code policy;
-- baseline precision.
+- baseline precision;
+- model/license metadata.
 
-### 2. Model loader
+### 2. Device specification
+
+Owns target constraints such as:
+
+- total unified/system memory budget;
+- optional resident-weight budget;
+- storage path / capacity constraints;
+- runtime backend;
+- concurrency/context assumptions.
+
+v0.1 primarily targets Apple Silicon with 16 GB unified memory.
+
+### 3. Model loader
 
 Responsibilities:
+
 - deterministic loading;
-- explicit dtype/device choices;
+- explicit dtype/device/backend choices;
 - version capture;
-- fail loudly when unsupported layers are encountered.
+- supported-layer checks;
+- model/expert inventory;
+- failure on unsupported structures.
 
-### 3. Runtime profiler
+### 4. Runtime profiler
 
-Measures:
-- weight storage;
-- load-time memory;
+Measures where feasible:
+
+- total and expert-only weight storage;
+- memory after model load;
+- resident memory during generation;
 - peak runtime memory;
-- latency;
-- throughput;
-- context-dependent memory where feasible.
+- TTFT;
+- generation throughput;
+- context-dependent memory;
+- repeated-run variation.
 
-### 4. Evaluation runner
+### 5. MoE routing profiler
 
-Runs development or held-out suites without exposing the held-out set to the search algorithm.
+Records:
 
-### 5. Sensitivity analyzer
+- experts selected per token;
+- expert activation frequency;
+- routing concentration / skew;
+- co-activation patterns where useful;
+- workload identity used to produce the profile.
 
-Future purpose:
-- estimate which tensors/layers tolerate low precision;
-- record error/activation/importance signals;
-- create reusable sensitivity profiles.
+Routing frequency is a measured signal, not a universal property of an expert.
 
-It must not assume that every model family has identical sensitivity structure.
+### 6. Sensitivity analyzer
 
-### 6. Candidate policy
+Estimates how quantization choices affect model behavior at expert/tensor granularity.
 
-A policy describes quantization choices such as:
+Candidate signals may include:
+
+- reconstruction/quantization error;
+- activation statistics;
+- task-level development deltas;
+- expert-specific perturbation experiments;
+- architecture-specific importance proxies.
+
+No single signal is assumed to be sufficient across all model families.
+
+### 7. Cost model
+
+Represents deployment costs relevant to policy search:
+
+- storage bytes;
+- resident-memory bytes;
+- transfer/offload cost;
+- metadata/scale overhead;
+- runtime latency impact where measurable.
+
+The cost model must distinguish measured values from estimates.
+
+### 8. Candidate policy
+
+A serializable policy may describe:
 
 ```text
-layer/tensor → bit width
-layer/tensor → group size
-layer/tensor → quantization scheme
-exceptions → higher precision
+expert/tensor → bit width
+expert/tensor → group size
+expert/tensor → quantization scheme
+expert       → resident | offloaded
+expert       → cache/prefetch priority
+exceptions   → higher precision / pinned residency
 ```
 
-Uniform INT4 is one valid policy, not the architecture of the project.
+Uniform INT4 with all experts resident is a baseline policy, not the architecture of the project.
 
-### 7. Quantization backends
+### 9. Quantization backends
 
-v0.1 should initially integrate established backends rather than rewriting every kernel from scratch. Backends may include MLX/MLX-LM, llama.cpp/GGUF, and research methods as compatibility permits.
+v0.1 should integrate established runtimes/backends before rewriting kernels. Candidate paths may include MLX/MLX-LM, llama.cpp/GGUF, or research backends as compatibility permits.
 
-The research contribution can live above or inside those backends, especially in sensitivity analysis and policy search.
+The project contribution, if supported by evidence, is expected to live primarily in profiling, policy construction/search, and device-aware execution rather than pretending established quantization primitives are novel.
 
-### 8. Search engine
+### 10. Residency / offload runtime
 
-Long-term objective:
+Responsibilities may include:
+
+- keeping selected experts resident;
+- loading offloaded experts on demand;
+- bounded caching;
+- measuring transfer volume and stalls;
+- optional prefetch experiments.
+
+Correctness comes before clever prefetch.
+
+### 11. Search engine
+
+Objective:
 
 ```text
-minimize real deployment cost
+minimize measured/estimated deployment cost
 subject to measured quality loss <= allowed threshold
+and device memory constraints
 ```
 
-Possible search strategies, in increasing complexity:
-- greedy layer protection;
-- sensitivity-ranked bit allocation;
+Possible strategies, in increasing complexity:
+
+- frequency-only baselines;
+- sensitivity-ranked protection;
+- greedy joint bit/residency allocation;
 - budgeted local search;
-- Bayesian/evolutionary search;
-- learned policy transfer across related models.
+- evolutionary/Bayesian search if justified by evidence.
 
-Do not begin with the fanciest method. Establish a stupid baseline first.
+Do not begin with the fanciest optimizer. Beat simple baselines first.
 
-### 9. Exporter
+### 12. Evaluation runner
+
+Runs development or locked held-out suites under frozen settings.
+
+The search system must not query final held-out results.
+
+### 13. Exporter
 
 Produces:
-- runnable artifact;
-- config/policy;
+
+- runnable artifact or reproducible build recipe;
+- policy/config;
 - model/source attribution;
 - benchmark summary;
 - hardware/runtime metadata;
@@ -126,25 +204,23 @@ Produces:
 
 ## Data separation
 
-The architecture must keep these logically separate:
+These remain logically and operationally separate:
 
 ```text
-calibration data
-search/development evaluation
+calibration / profiling data
+development evaluation
 locked final held-out evaluation
 ```
 
-No component that optimizes candidate policies should have routine access to final held-out results.
+## Open technical risks
 
-## Future moat candidates
+- expert routing profiles may be workload-specific;
+- low-bit experts may require kernels that erase theoretical gains;
+- SSD/offload latency may dominate;
+- caching may reduce memory savings;
+- KV cache may become the dominant memory term;
+- thermal throttling may distort laptop benchmarks;
+- a policy may overfit one model family;
+- sensitivity signals may fail to predict task-level regressions.
 
-If the project matures, defensibility is more likely to come from the combination of:
-
-- model sensitivity data;
-- device/runtime profiles;
-- better policy search;
-- highly reliable evaluation;
-- optimized kernels/export paths;
-- user-submitted reproduction data;
-
-rather than one mysterious equation pasted into a README.
+These risks are part of the research question, not inconveniences to hide.
