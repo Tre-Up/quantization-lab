@@ -1,39 +1,55 @@
 # Decision Log
 
-Major project decisions belong here so future changes have context.
+Major project decisions are recorded here so later changes have context.
 
 ## 2026-09-12 — D001: Optimize for measured preservation, not a marketing number
 
-**Decision:** The project will report measured quality retention against the original model, not claim “99.9% intelligence.”
+**Decision:** Report measured quality retention against the original model rather than claims such as “99.9% intelligence.”
 
-**Reason:** Intelligence is not a single directly measurable scalar. A frozen evaluation battery, domain scores, and uncertainty are defensible.
+**Reason:** Intelligence is not a single directly measurable scalar. Frozen evaluation, per-domain scores, and uncertainty are defensible.
 
 ## 2026-09-12 — D002: Runtime memory is a first-class metric
 
-**Decision:** Disk/model size and peak runtime memory will always be reported separately.
+**Decision:** Disk/model size and runtime memory are reported separately.
 
-**Reason:** A compact file that still requires excessive working memory fails the local-deployment goal.
+**Reason:** A compact file that requires excessive working memory fails the deployment goal.
 
-## 2026-09-12 — D003: 4× is the v0.1 primary target; 5× + 99.9% is stretch
+## 2026-09-12 — D003: Initial dense-quantization target
 
-**Decision:** The project will not define success as an unproven breakthrough.
+**Decision:** The original foundation set ~4× weight-storage compression as the primary target and 5× + 99.9% measured retention as stretch.
 
-**Reason:** Starting from beginner level, v0.1 needs a demanding but credible engineering/research target while still attacking a much harder stretch result.
+**Status:** **Superseded by D007.**
+
+**Reason for preservation:** This records the repository's original research direction rather than rewriting history.
 
 ## 2026-09-12 — D004: Apple Silicon is the first deployment target
 
 **Decision:** Use an M4 / 16 GB unified-memory machine as the primary constrained-device target.
 
-**Reason:** Local inference is the project's immediate use case, and hard memory constraints force honest deployment measurements.
+**Reason:** Hard local constraints force deployment measurements to include real memory and runtime behavior.
 
 ## 2026-09-12 — D005: Reproduce before inventing
 
-**Decision:** Existing quantization methods must be reproduced and measured before custom algorithm claims begin.
+**Decision:** Established quantization/runtime approaches must be reproduced before custom algorithm claims.
 
-**Reason:** Without a trustworthy baseline, novelty and improvement claims are meaningless.
+**Reason:** Without trustworthy baselines, novelty and improvement claims are meaningless.
 
 ## 2026-09-12 — D006: Licensing remains intentionally unresolved during foundation work
 
-**Decision:** Do not add a final software license yet.
+**Decision:** Do not select a final software license yet.
 
-**Reason:** The project wants public validation and broad individual access while preserving commercial/IP options. The open-source vs source-available tradeoff must be decided deliberately before the first serious release.
+**Reason:** Public validation, individual/research access, commercial options, and possible IP protection need a deliberate decision before the first serious release.
+
+## 2026-09-19 — D007: Expand the research question to joint MoE precision + residency optimization
+
+**Decision:** v0.1 will investigate device-aware MoE inference rather than dense quantization alone. The system will test whether quantization precision and expert residency/offload can be selected jointly using sensitivity, routing behavior, and device constraints.
+
+**Reason:** Weight compression alone does not capture the dominant deployment costs on constrained devices. MoE introduces expert-level heterogeneity in active compute, routing frequency, memory residency, and transfer cost that can be measured and optimized together.
+
+**Consequence:** The primary v0.1 target becomes ≥3× expert-weight storage compression with ≥99% locked measured quality retention plus runtime-memory evidence. Approximately 4× + ≥99.9% becomes a stretch target. These are targets, not promised results.
+
+## 2026-09-19 — D008: Public repository is a research artifact, not a personal learning diary
+
+**Decision:** Public structure uses milestones, experiments, configs, results, and provenance. Personal study plans/exams are not part of the repository's primary surface.
+
+**Reason:** The repository should be useful and credible to ML systems engineers independently of the author's education or application context.
