@@ -4,6 +4,14 @@ This file records the technical evolution of `quantization-lab` without turning 
 
 The public record is milestone-based. Entries are added only when a technical artifact, experiment, measurement capability, or research boundary materially changes. Personal assessments, study notes, application material, and private ownership evidence remain outside the public repository.
 
+## Evidence practice
+
+Alongside the public technical record, the project maintains a separate **private evidence archive** for research ownership and longitudinal provenance. That archive may include dated baseline assessments, AI-off technical defenses, source/code snapshots, session records, recordings, and file checksums.
+
+The private archive is not used as a substitute for reproducible public results. Public claims must still be supported by code, configs, experiments, measurements, and immutable repository history. Private evidence exists only to preserve an auditable record of how the work was developed and understood over time.
+
+No personal study diary, admissions material, motivational log, or raw private evidence should be committed to this public repository.
+
 ## Provenance rules
 
 - Record facts that are verifiable from the repository or a linked immutable artifact.
