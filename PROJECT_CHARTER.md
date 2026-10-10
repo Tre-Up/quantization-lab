@@ -10,13 +10,15 @@ Quantization reduces representation cost, while Mixture-of-Experts (MoE) archite
 
 **Can a device-aware system jointly select quantization precision and expert residency from measured sensitivity, routing behavior, and hardware constraints to reduce real MoE inference cost while preserving baseline capability as tightly as possible?**
 
-## Research window
+## Research timeline
 
-- Start: **2026-09-20**
-- v0.1 target: **2026-12-19**
-- Focused effort budget: roughly **20–25 hours per week**
+- Initial repository foundation: **2026-09-12** (historical record retained).
+- Earlier planning began in September but did not deliver the planned baseline.
+- Active execution restart: **2026-10-10**, Day 1 of the new development cycle.
+- Provisional v0.1 target: **2027-01-16**, subject to measurement evidence and hardware availability.
+- Planned focused effort: roughly **20–25 hours per week**; this is an estimate, not a claim of hours completed.
 
-Calendar time is not evidence. Milestones close only when the required measurements and artifacts exist.
+Calendar time is not evidence. Milestones close only when their measurements and artifacts exist. See [ROADMAP.md](ROADMAP.md).
 
 ## Scope for v0.1
 

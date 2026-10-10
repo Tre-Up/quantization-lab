@@ -1,54 +1,32 @@
 # Current Status
 
-Last updated: **2026-09-19**
+Last reviewed: **2026-10-10**
 
-## Phase
+## Historical foundation and execution restart
 
-**Foundation / baseline instrumentation**
+The repository was established on 2026-09-12; the MoE focus was documented on 2026-09-19. Earlier milestone dates were plans, not evidence of completed experiments.
 
-The research direction has been narrowed to device-aware MoE inference: quantization precision, expert sensitivity, routing behavior, and expert residency/offload will be evaluated as a joint deployment problem.
+**2026-10-10 is Day 1 of a new execution cycle.** Prior inactivity is not represented as completed work. See [ROADMAP.md](../ROADMAP.md) for new, provisional windows.
 
-## What exists
+## Current technical state
 
-- public repository and research charter;
-- explicit success/failure criteria;
-- evaluation and runtime-memory standards;
-- experiment logging protocol;
-- hardware measurement standard;
-- reproducibility, provenance, and contribution policies;
-- architecture for profiling, sensitivity analysis, policy search, and evaluation;
-- minimal `qlab doctor` CLI skeleton.
+**Foundation / baseline instrumentation.** The project has a public research charter, evaluation and hardware standards, experiment protocols, a minimal `qlab doctor` CLI, and repository scaffolding.
 
-## What does not exist yet
+A draft PR, [#7](https://github.com/Tre-Up/quantization-lab/pull/7), adds a small baseline record validator and synthetic contract tests. It is **not merged** as of this status entry; those tests do not constitute quantization or hardware results.
 
-- no custom adaptive quantization/residency method;
-- no implemented MoE routing profiler;
-- no expert sensitivity dataset;
-- no automated residency/offload runtime;
-- no benchmark-suite implementation;
-- no 3×/4× headline compression result;
-- no 99%/99.9% retention result;
-- no multi-family validation;
-- no external reproduction.
+## Not yet demonstrated
 
-Those are open research objectives, not implied capabilities.
+- No measured first local baseline on Apple Silicon / 16 GB has been published.
+- No original adaptive quantization or expert-residency method is implemented.
+- No expert routing/sensitivity profiler or finished benchmark suite exists.
+- No verified 3×/4× compression, 99%/99.9% measured retention, cross-family validation, or independent reproduction result exists.
 
-## Immediate milestone
+## Next acceptance gate: M0
 
-**M0: Baseline contract and instrumentation**
+- Select a feasible supported model/runtime path and pin exact revisions/licenses.
+- Freeze workload, decoding, device and software metadata.
+- Run real reference measurements on the actual target hardware: weight storage, resident and peak memory, TTFT and throughput.
+- Attempt at least one established quantized comparison under comparable conditions.
+- Commit or immutably reference raw results and reproducible instructions.
 
-Acceptance:
-
-- first supported model/runtime path selected;
-- exact model and tokenizer revisions recorded;
-- baseline runs on the target Apple Silicon / 16 GB device where feasible;
-- weight size, resident memory, peak memory, TTFT, and throughput measured;
-- at least one established quantized baseline measured under equivalent settings;
-- machine-readable experiment result committed;
-- reproduction command documented.
-
-See [ROADMAP.md](../ROADMAP.md).
-
-## Research discipline
-
-No adaptive policy, novelty claim, or headline efficiency claim should be promoted before comparable baselines and measurement tooling are established.
+We make no efficiency or quality claims until the evidence supports them.
