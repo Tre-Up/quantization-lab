@@ -106,11 +106,11 @@ Large model weights and bulky benchmark artifacts do not belong in Git. Immutabl
 
 ## Current status
 
-**Foundation / instrumentation.**
+**Foundation / instrumentation.** Active development was restarted on **2026-10-10 (execution Day 1)** after earlier planned milestones were not completed. Repository history and original dates remain intact; see [updated roadmap](ROADMAP.md).
 
 The repository currently contains the research contract, evaluation standards, experiment protocol, and a minimal `qlab doctor` utility. It does **not** yet claim a new quantization method, a compression result, a memory win, or a quality-retention result.
 
-The next milestone is a frozen, reproducible baseline on the target device before adaptive MoE policies are attempted.
+The next milestone is a frozen, reproducible baseline on the target device before adaptive MoE policies are attempted. A [draft baseline metadata validator](https://github.com/Tre-Up/quantization-lab/pull/7) is under review; no hardware baseline is claimed.
 
 See [Current Status](docs/CURRENT_STATUS.md) and [Roadmap](ROADMAP.md).
 
