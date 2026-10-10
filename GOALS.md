@@ -2,7 +2,7 @@
 
 ## v0.1 primary goals
 
-The v0.1 program targets the following evidence by **2026-12-19**.
+After the **2026-10-10 execution restart**, v0.1 provisionally targets the following evidence by **2027-01-16**. The deadline is a planning target, not evidence of progress.
 
 ### 1. Reproducible baselines
 
